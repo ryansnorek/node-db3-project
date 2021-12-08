@@ -13,7 +13,7 @@ function find() {
   */
   return db('schemes as sch')
           .leftJoin('steps as st', {
-            'sch.scheme_id': 'st.scheme_id'
+            'sch.scheme_id':'st.scheme_id'
           })
           .groupBy('sch.scheme_id')
           .orderBy('sch.scheme_id', 'asc')
@@ -33,7 +33,7 @@ async function findById(scheme_id) {
   // ORDER BY st.step_number ASC;
   const schemeSteps = await db('schemes as sch')
     .leftJoin('steps as st', {
-      'sch.scheme_id': 'st.scheme_id'
+      'sch.scheme_id':'st.scheme_id'
     })
     .orderBy('st.step_number', 'asc')
     .select('sch.scheme_name', 'st.*')
@@ -52,36 +52,23 @@ async function findById(scheme_id) {
     scheme_name,
     steps
   }                  
-  /*
-      {
-        "scheme_id": 1,
-        "scheme_name": "World Domination",
-        "steps": [
-          {
-            "step_id": 2,
-            "step_number": 1,
-            "instructions": "solve prime number theory"
-          },
-          {
-            "step_id": 1,
-            "step_number": 2,
-            "instructions": "crack cyber security"
-          },
-          // etc
-        ]
-      }
-
-    5B- This is what the result should look like _if there are no steps_ for a `scheme_id`:
-
-      {
-        "scheme_id": 7,
-        "scheme_name": "Have Fun!",
-        "steps": []
-      }
-  */
 }
 
-function findSteps(scheme_id) { // EXERCISE C
+async function findSteps(scheme_id) { 
+  // SELECT *
+  // FROM steps as st
+  // LEFT JOIN schemes as sch
+  //   ON sch.scheme_id = st.scheme_id
+  // WHERE sch.scheme_id = 1
+  // ORDER BY st.step_number ASC;
+  const schemeSteps = await db('steps as st')
+    .leftJoin('schemes as sch', {
+      'sch.scheme_id':'st.scheme_id'
+    })
+    .orderBy('st.step_number', 'asc')
+    .select('*')
+    .where('sch.scheme_id', scheme_id);
+  console.log(schemeSteps)
   /*
     1C- Build a query in Knex that returns the following data.
     The steps should be sorted by step_number, and the array
