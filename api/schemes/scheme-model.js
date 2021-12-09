@@ -38,16 +38,12 @@ async function findById(scheme_id) {
     .select('sch.scheme_name', 'st.*')
     .orderBy('st.step_number', 'asc')
     .where('sch.scheme_id', scheme_id);
-  
-  
-  const { scheme_name } = schemeSteps[0];
 
   const result = {
     scheme_id: schemeSteps[0].scheme_id,
     scheme_name: schemeSteps[0].scheme_name,
     steps: []
   }
-
   schemeSteps.forEach(s => {
     if (s.step_id) {
       result.steps.push({
@@ -57,20 +53,7 @@ async function findById(scheme_id) {
       })
     }
   })
-  return result;
-  // const steps = [];
-  // schemeSteps.forEach(s => {
-  //   steps.push({
-  //     scheme_id: s.step_id,
-  //     scheme_name: s.step_number,
-  //     instructions: s.instructions
-  //   })
-  // })
-  // return {
-  //   scheme_id,
-  //   scheme_name,
-  //   steps
-  // }            
+  return result;       
 }
 
 async function findSteps(scheme_id) { 
@@ -80,14 +63,27 @@ async function findSteps(scheme_id) {
   //   ON sch.scheme_id = st.scheme_id
   // WHERE sch.scheme_id = 1
   // ORDER BY st.step_number ASC;
-  const schemeSteps = await db('steps as st')
+
+  // const rows = await db('schemes as sch')
+  //   .leftJoin('steps as st', {
+  //     'sch.scheme_id':'st.scheme_id'
+  //   })
+  //   .select('st.step_id', 'st.step_number', 'instructions', 'sc.scheme_name')
+  //   .where('sch.scheme_id', scheme_id)
+  //   .orderBy('step_number')
+
+  // if (!rows[0].step_id) return []
+  // return rows
+
+  const rows = await db('steps as st')
     .leftJoin('schemes as sch', {
       'sch.scheme_id':'st.scheme_id'
     })
     .orderBy('st.step_number', 'asc')
     .select('*')
     .where('sch.scheme_id', scheme_id);
-  console.log(schemeSteps)
+
+    return rows
   /*
     1C- Build a query in Knex that returns the following data.
     The steps should be sorted by step_number, and the array
@@ -110,13 +106,17 @@ async function findSteps(scheme_id) {
   */
 }
 
-function add(scheme) { // EXERCISE D
+function add(scheme) { 
+  return db('schemes').insert(scheme)
+    .then(([scheme_id]) => {
+      return db('schemes').where('scheme_id', scheme_id)
+    })
   /*
     1D- This function creates a new scheme and resolves to _the newly created scheme_.
   */
 }
 
-function addStep(scheme_id, step) { // EXERCISE E
+function addStep(scheme_id, step) { 
   /*
     1E- This function adds a step to the scheme with the given `scheme_id`
     and resolves to _all the steps_ belonging to the given `scheme_id`,
