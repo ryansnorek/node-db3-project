@@ -15,10 +15,10 @@ function find() {
           .leftJoin('steps as st', {
             'sch.scheme_id':'st.scheme_id'
           })
-          .groupBy('sch.scheme_id')
+          .select('sch.*')
           .orderBy('sch.scheme_id', 'asc')
-          .select('*')
-          .count('st.step_id')
+          .count('st.step_id as number_of_steps')
+          .groupBy('sch.scheme_id')
 }
 
 
