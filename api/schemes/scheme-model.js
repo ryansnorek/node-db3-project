@@ -31,25 +31,25 @@ async function findById(scheme_id) {
   //     ON sc.scheme_id = st.scheme_id
   // WHERE sc.scheme_id = 1
   // ORDER BY st.step_number ASC;
-  const schemeSteps = await db('schemes as sch')
+  const rows = await db('schemes as sch')
     .leftJoin('steps as st', {
       'sch.scheme_id':'st.scheme_id'
     })
-    .select('sch.scheme_name', 'st.*')
+    .where('sch.scheme_id', scheme_id)
+    .select('st.*', 'sch.scheme_name', 'sch.scheme_id')
     .orderBy('st.step_number')
-    .where('sch.scheme_id', scheme_id);
 
   const result = {
-    scheme_id: schemeSteps[0].scheme_id,
-    scheme_name: schemeSteps[0].scheme_name,
+    scheme_id: rows[0].scheme_id,
+    scheme_name: rows[0].scheme_name,
     steps: []
   }
-  schemeSteps.forEach(s => {
-    if (s.step_id) {
+  rows.forEach(r => {
+    if (r.step_id) {
       result.steps.push({
-        step_id: s.step_id,
-        step_number: s.step_number,
-        instructions: s.instructions
+        step_id: r.step_id,
+        step_number: r.step_number,
+        instructions: r.instructions
       })
     }
   })
@@ -64,27 +64,27 @@ async function findSteps(scheme_id) {
   // WHERE sch.scheme_id = 1
   // ORDER BY st.step_number ASC;
 
-  // const rows = await db('schemes as sch')
-  //   .leftJoin('steps as st', {
-  //     'sch.scheme_id':'st.scheme_id'
-  //   })
-  //   .select('st.step_id', 'st.step_number', 'instructions', 'sc.scheme_name')
-  //   .where('sch.scheme_id', scheme_id)
-  //   .orderBy('step_number')
-
-  // if (!rows[0].step_id) return []
-  // return rows
-
-  const rows = await db('steps as st')
-    .leftJoin('schemes as sch', {
+  const rows = await db('schemes as sch')
+    .leftJoin('steps as st', {
       'sch.scheme_id':'st.scheme_id'
     })
+    .select('st.step_id', 'st.step_number', 'instructions', 'sch.scheme_name')
+    .where('sch.scheme_id', scheme_id)
     .orderBy('st.step_number')
-    .select('*')
-    .where('sch.scheme_id', scheme_id);
 
-    return rows
-  /*
+  if (!rows[0].step_id) return []
+  return rows
+
+  // const rows = await db('steps as st')
+  //   .leftJoin('schemes as sch', {
+  //     'sch.scheme_id':'st.scheme_id'
+  //   })
+  //   .select('*')
+  //   .orderBy('st.step_number')
+  //   .where('sch.scheme_id', scheme_id);
+
+  //   return rows
+  /* 
     1C- Build a query in Knex that returns the following data.
     The steps should be sorted by step_number, and the array
     should be empty if there are no steps for the scheme:
@@ -109,7 +109,7 @@ async function findSteps(scheme_id) {
 function add(scheme) { 
   return db('schemes').insert(scheme)
     .then(([scheme_id]) => {
-      return db('schemes').where('scheme_id', scheme_id)
+      return db('schemes').where('scheme_id', scheme_id).first()
     })
   /*
     1D- This function creates a new scheme and resolves to _the newly created scheme_.
@@ -126,7 +126,8 @@ function addStep(scheme_id, step) {
       .join('schemes as sch', {
         'sch.scheme_id':'st.scheme_id'
       })
-      .where('scheme_id', scheme_id)
+      .where('sch.scheme_id', scheme_id)
+      .orderBy('st.step_number')
   })
   /*
     1E- This function adds a step to the scheme with the given `scheme_id`
